@@ -1,10 +1,15 @@
-﻿using Smartwyre.DeveloperTest.Data;
+﻿using System;
+using Microsoft.VisualBasic;
+using Smartwyre.DeveloperTest.Data;
 using Smartwyre.DeveloperTest.Types;
 
 namespace Smartwyre.DeveloperTest.Services;
 
 public class RebateService : IRebateService
 {
+    private readonly IDbConnectionWrapper connectionWrapper = new SqlConnectionWrapper();
+
+    
     public CalculateRebateResult Calculate(CalculateRebateRequest request)
     {
         var rebateDataStore = new RebateDataStore();
