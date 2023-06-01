@@ -1,26 +1,40 @@
-# Smartwyre Developer Test Instructions
+# Smartwyre Developer Test
 
-In the 'RebateService.cs' file you will find a method for calculating a rebate. At a high level the steps for calculating a rebate are:
+This repository contains a solution for the Smartwyre Developer Test. It provides functionality for managing product and rebate details, as well as calculating rebates based on specific incentive types.
 
- 1. Lookup the rebate that the request is being made against.
- 2. Lookup the product that the request is being made against.
- 2. Check that the rebate and request are valid to calculate the incentive type rebate.
- 3. Store the rebate calculation.
+## Features
 
-What we'd like you to do is refactor the code with the following things in mind:
+`ProductDataStore`: Added a `POST` method for adding product details to the data store. The method returns the identifier of the newly added product, which can be used later for rebate calculation.
 
- - Adherence to SOLID principles
- - Testability
- - Readability
- - In the future we will add many more incentive types. Determining the incentive type should be made as easy and intuitive as possible for developers who will edit this in the future.
+`RebateDataStore`: Added a `POST` method for adding rebate details to the data store. The method returns the identifier of the newly added rebate, which is used in the calculation process.
 
-We’d also like you to 
- - Add some unit tests to the Smartwyre.DeveloperTest.Tests project to show how you would test the code that you’ve produced 
- - Run the RebateService from the Smartwyre.DeveloperTest.Runner console application accepting inputs
+`GetMethod`: Added code to the `GetMethod` of both RebateDataStore and ProductDataStore. These methods retrieve the identifier of the specified rebate or product, allowing it to be used in the rebate calculation process.
 
-The only specific 'rules' are:
+`UpdateMethod`: Added code to the `UpdateMethod` of `RebateDataStore` to perform the rebate calculation based on the specific incentive type.
 
-- The solution should build
-- The tests should all pass
+`Constants`: Introduced constant files for code reusability throughout the Smartwyre.DeveloperTest solution.
 
-You are free to use any frameworks/NuGet packages that you see fit. You should plan to spend around 1 hour completing the exercise.
+`DB folder`: Created a `DB folder` for performing dependency injection, eliminating the need to create a new SQL connection object for every open, close, or command creation operation within the Smartwyre.DeveloperTest solution.
+
+`Unit Tests`: Implemented test cases for each method, ensuring all tests pass within the Smartwyre.DeveloperTest.Tests solution.
+
+`Console Application`: The Smartwyre.DeveloperTest.Runner project runs the RebateService from Program.cs as per the provided instructions.
+
+`CalculateRebate Method`: The CalculateRebate method calculates the rebate based on the specified incentive type, as required.
+
+`Validation`: Implemented various validations to prevent program execution from breaking due to invalid input or scenarios.
+
+`Exception` `Handling`: Utilized exception handling to handle errors gracefully. If an error occurs, it will be caught and handled appropriately without breaking the application.
+
+## Usage
+To use this solution, follow these steps:
+
+1. Clone the repository: git clone [https://github.com/AmirHussain-12/Smartwyre_Test.git]
+2. Open the solution in your preferred development environment.
+3. Build the solution to ensure all dependencies are resolved.
+4. Run the console application, Smartwyre.DeveloperTest.Runner, to execute the rebate service.
+5. Follow the prompts to add product and rebate details, and calculate rebates based on incentive types.
+
+## Contributing
+Contributions to this repository are welcome. If you find any issues or have suggestions for improvements, please feel free to submit a pull request.
+
