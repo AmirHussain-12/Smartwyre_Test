@@ -1,4 +1,6 @@
-﻿namespace Smartwyre.DeveloperTest.Types;
+﻿using Smartwyre.DeveloperTest.Types;
+
+namespace Smartwyre.DeveloperTest.Model;
 
 public class Product
 {

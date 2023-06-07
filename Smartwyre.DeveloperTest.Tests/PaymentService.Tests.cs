@@ -1,6 +1,7 @@
 using Microsoft.VisualBasic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Smartwyre.DeveloperTest.Data;
+using Smartwyre.DeveloperTest.Login;
 using Smartwyre.DeveloperTest.Services;
 using Smartwyre.DeveloperTest.Types;
 using Xunit;
@@ -134,5 +135,39 @@ public class PaymentServiceTests
 
         // Assert
         Assert.AreEqual(false, actualRebate.Success);
+    }
+
+    [Fact]
+    [TestMethod]
+    public void Login_ValidCredentials_ReturnsTrue()
+    {
+        // Arrange
+        var target = new UserDataStore(); // Replace YourClassName with the actual class containing the GetProduct method
+        // Act
+        var actualUser = target.GetUser("Hassam");
+        var expectedUser = new User
+        {
+            Username = "Hassam                   ",
+            Subscription = Subscription.Basic,
+            
+        };
+
+
+        // Assert
+        Assert.AreEqual(expectedUser.Username, actualUser.Username);
+        Assert.AreEqual(expectedUser.Subscription, actualUser.Subscription);
+        
+    }
+
+    [Fact]
+    [TestMethod]
+    public void Login_ValidCredentials_ReturnsNull()
+    {
+        // Arrange
+        var target = new UserDataStore(); // Replace YourClassName with the actual class containing the GetProduct method
+        // Act
+        var actualUser = target.GetUser("Hussain");
+        // Assert
+        Assert.IsNull(actualUser);
     }
 }

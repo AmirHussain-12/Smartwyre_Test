@@ -1,5 +1,10 @@
-﻿using Smartwyre.DeveloperTest.Types;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Smartwyre.DeveloperTest.BusinessLogic;
+using Smartwyre.DeveloperTest.Login;
+using Smartwyre.DeveloperTest.Model;
+using Smartwyre.DeveloperTest.Types;
 using System;
+using System.Configuration;
 using System.Data.SqlClient;
 
 namespace Smartwyre.DeveloperTest.Data;
@@ -7,7 +12,9 @@ namespace Smartwyre.DeveloperTest.Data;
 public class ProductDataStore
 {
     private readonly IDbConnectionWrapper connectionWrapper = new SqlConnectionWrapper();
+    public static string UserSubscription = ConfigurationManager.AppSettings["Subscription"];
 
+    // This method retrieves data against identifier from database 
     public Product GetProduct(string identifier)
     {
         try
@@ -25,7 +32,7 @@ public class ProductDataStore
                 {
                     if (reader.Read())
                     {
-                        Product product = new Product
+                        Product product = new()
                         {
                             Identifier = reader.GetString(0),
                             Price = reader.GetDecimal(1),
@@ -54,42 +61,13 @@ public class ProductDataStore
 
 
 
-
-    public string PostProduct()
+    // This method stores data into the database
+    public Product PostProduct()
     {
         try
         {
-            Product product = new Product();
+            Product product = GetProductDetails();
             connectionWrapper.Open();
-            Console.WriteLine("Please Enter Product Details:");
-            product.Identifier = Guid.NewGuid().ToString();
-            Console.Write("Price: ");
-            product.Price = int.Parse(Console.ReadLine());
-            Console.Write("UOM: ");
-            product.Uom = Console.ReadLine();
-            Console.WriteLine("Press 1 for Fixed Rate Rebate");
-            Console.WriteLine("Press 2 for Amount Per Uom");
-            Console.WriteLine("Press 3 for Fixed Cash Amount");
-            Console.Write("Press 1-3 for Selection of Incentive Types: ");
-            int select = int.Parse(Console.ReadLine());
-
-            switch (select)
-            {
-                case 1:
-                    product.SupportedIncentives = SupportedIncentiveType.FixedRateRebate;
-                    break;
-                case 2:
-                    product.SupportedIncentives = SupportedIncentiveType.AmountPerUom;
-                    Console.WriteLine(product.SupportedIncentives);
-                    break;
-                case 3:
-                    product.SupportedIncentives = SupportedIncentiveType.FixedCashAmount;
-                    break;
-                default:
-                    Console.WriteLine("Invalid Options");
-                    break;
-            }
-
             string insertProductQuery = "INSERT INTO Product (Identifier, Price, Uom, SupportedIncentive) VALUES (@Identifier, @Price, @Uom, @SupportedIncentive)";
             using (SqlCommand insertCommand = connectionWrapper.CreateCommand())
             {
@@ -106,16 +84,134 @@ public class ProductDataStore
             Console.ReadLine();
             Console.Clear();
             connectionWrapper.Close();
-            return product.Identifier;
+            return product;
         }
         catch
         {
-            Console.WriteLine("Invalid Input");
+            Console.Write("Error : Post request is not working");
+            Environment.Exit(0);
+            return null;
+        }
+    }
+
+    // This method takes data from the user through Console
+    public static Product GetProductDetails()
+    {
+        try
+        {
+            Product details = new();
+            Console.WriteLine("Please Enter Product Details:");
+            details.Identifier = Guid.NewGuid().ToString();
+            Console.Write("Price: ");
+            details.Price = int.Parse(Console.ReadLine());
+            Console.Write("UOM: ");
+            details.Uom = Console.ReadLine();
+            dynamic SupportedIncentives;
+
+            if ((Subscription)Convert.ToInt16(LoginLogics.Subscription) == Subscription.Basic)
+            {
+  
+                SupportedIncentives = IncentiveTypesForBasic();
+                if(SupportedIncentives == null)
+                {
+                    return null;  
+                }
+                    details.SupportedIncentives = SupportedIncentives;
+            }
+            else if ((Subscription)Convert.ToInt16(LoginLogics.Subscription) == Subscription.Platinum)
+            {
+                SupportedIncentives = IncentiveTypesForPlatinum();
+                if (SupportedIncentives == null)
+                {
+                    return null;
+                }
+                    details.SupportedIncentives = SupportedIncentives;
+            }
+            else if ((Subscription)Convert.ToInt16(LoginLogics.Subscription) == Subscription.Crown)
+            {
+                SupportedIncentives = IncentiveTypesForCrown();
+                if (SupportedIncentives == null)
+                {
+                    return null;
+                }
+                    details.SupportedIncentives = SupportedIncentives;
+            }
+            else
+            {
+                Console.Write("Invalid Subscription");
+                return null; // Or any appropriate value indicating failure
+            }
+
+            return details;
+        }
+        catch
+        {
+            Console.Write("Error: Invalid Product Input");
             Environment.Exit(0);
             return null;
         }
     }
 
 
+    static SupportedIncentiveType? IncentiveTypesForBasic()
+    {
+        Console.WriteLine("Press 1 for Fixed Rate Rebate");
+        Console.Write("Press 1 for Selection of Incentive Types: ");
+        int select = int.Parse(Console.ReadLine());
+
+        switch (select)
+        {
+            case 1:
+                return SupportedIncentiveType.FixedRateRebate;
+            default:
+                Console.Write("Invalid Options");
+                return null;
+        }
+    }
+
+    static SupportedIncentiveType? IncentiveTypesForPlatinum()
+    {
+        Console.WriteLine("Press 1 for Fixed Rate Rebate");
+        Console.WriteLine("Press 2 for Amount Per Uom");
+        Console.Write("Press 1-2 for Selection of Incentive Types: ");
+        int select1 = int.Parse(Console.ReadLine());
+
+        switch (select1)
+        {
+            case 1:
+                return SupportedIncentiveType.FixedRateRebate;
+                
+            case 2:
+                return SupportedIncentiveType.AmountPerUom;
+                
+            default:
+                Console.Write("Invalid Options");
+                return null;
+        }
+    }
+
+    static SupportedIncentiveType? IncentiveTypesForCrown()
+    {
+        Console.WriteLine("Press 1 for Fixed Rate Rebate");
+        Console.WriteLine("Press 2 for Amount Per Uom");
+        Console.WriteLine("Press 3 for Fixed Cash Amount");
+        Console.Write("Press 1-3 for Selection of Incentive Types: ");
+        int select2 = int.Parse(Console.ReadLine());
+
+        switch (select2)
+        {
+            case 1:
+                return SupportedIncentiveType.FixedRateRebate;
+                
+            case 2:
+                return SupportedIncentiveType.AmountPerUom;
+            case 3:
+                return SupportedIncentiveType.FixedCashAmount;
+
+            default:
+                Console.Write("Invalid Options");
+                return null;
+        }
+    }
 
 }
