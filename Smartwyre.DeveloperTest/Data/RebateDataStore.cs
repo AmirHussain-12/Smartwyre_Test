@@ -1,7 +1,8 @@
-﻿using Microsoft.VisualBasic;
+﻿using Smartwyre.DeveloperTest.Model;
 using Smartwyre.DeveloperTest.Types;
 using System;
 using System.Data.SqlClient;
+using System.Runtime.ConstrainedExecution;
 
 namespace Smartwyre.DeveloperTest.Data;
 
@@ -11,7 +12,7 @@ public class RebateDataStore
     private readonly IDbConnectionWrapper connectionWrapper = new SqlConnectionWrapper();
 
     
-
+    // Gets details of Rebate against Idenifier from database 
     public Rebate GetRebate(string rebateIdentifier)
     {
         try
@@ -61,7 +62,7 @@ public class RebateDataStore
         
     }
 
-
+    // This method updates the value of Amount in Rebate and replace with rebate amount.  
     public void StoreCalculationResult(Rebate account, decimal rebateAmount)
     {
         try
@@ -84,53 +85,40 @@ public class RebateDataStore
         }
         catch
         {
-            Console.WriteLine("Error : Sorry We can't update Rebate Amount");
+            Console.Write("Error : Sorry We can't update Rebate Amount");
         }
         
     }
 
-    public string PostRebate()
+    // This method stores the details of Rebate
+    public string PostRebate(Product product)
     {
         try
         {
             //Rebate
-            Rebate rebate = new Rebate();
-            connectionWrapper.Open();
-            Console.WriteLine("Please Enter Rebate Details:");
-            rebate.Identifier = Guid.NewGuid().ToString();
-            Console.Write("Amount :");
-            rebate.Amount = Decimal.Parse(Console.ReadLine());
-            Console.Write("Percentage: ");
-            rebate.Percentage = Decimal.Parse(Console.ReadLine());
-            Console.WriteLine("Press 1 for Fixed Rate Rebate");
-            Console.WriteLine("Press 2 for Amount Per Uom");
-            Console.WriteLine("Press 3 for Fixed Cash Amount");
-            Console.WriteLine("Press 1-3 for Selection of Incentive Types :");
-            int selectIncentive = int.Parse(Console.ReadLine());
+            Rebate rebate = GetRebateDetails();
 
-            switch (selectIncentive)
+            
+            var Incentive = (IncentiveType)product.SupportedIncentives;
+            if(Incentive.ToString() == "4")
             {
-                case 1:
-                    rebate.Incentive = IncentiveType.FixedRateRebate;
-                    break;
-                case 2:
-                    rebate.Incentive = IncentiveType.AmountPerUom;
-
-                    break;
-                case 3:
-                    rebate.Incentive = IncentiveType.FixedCashAmount;
-                    break;
-                default:
-                    Console.WriteLine("Invalid Options");
-                    break;
-
+                rebate.Incentive = IncentiveType.FixedCashAmount;
+            }else if(Incentive.ToString() == "1")
+            {
+                rebate.Incentive= IncentiveType.FixedRateRebate;
+            }else if(Incentive.ToString()=="2" || Incentive.ToString()== "FixedCashAmount") {
+                rebate.Incentive = IncentiveType.AmountPerUom;
             }
 
+            
+
+            connectionWrapper.Open();
             string insertRebateQuery = "INSERT INTO Rebate (Identifier, Amount, IncentiveType, Percentage) VALUES (@Identifier, @Amount, @IncentiveType, @Percentage)";
+            
             using (SqlCommand insertRebateCommand = connectionWrapper.CreateCommand())
             {
                 insertRebateCommand.CommandText = insertRebateQuery;
-                insertRebateCommand.Parameters.AddWithValue("@Identifier", rebate.Identifier);
+                insertRebateCommand.Parameters.AddWithValue("@Identifier", product.Identifier);
                 insertRebateCommand.Parameters.AddWithValue("@Amount", rebate.Amount);
                 insertRebateCommand.Parameters.AddWithValue("@IncentiveType", rebate.Incentive);
                 insertRebateCommand.Parameters.AddWithValue("@Percentage", rebate.Percentage);
@@ -141,13 +129,32 @@ public class RebateDataStore
             Console.ReadLine();
             Console.Clear();
             connectionWrapper.Close();  
-
-
-            return rebate.Identifier;
+            return product.Identifier;
         }
         catch
         {
-            Console.WriteLine("Invalid Input");
+            Console.Write("Invalid Input");
+            Environment.Exit(0);
+            return null;
+        }
+    }
+
+    // This method get the Details of Rebate from User 
+    public Rebate GetRebateDetails()
+    {
+        try
+        {
+            Rebate details = new();
+            Console.WriteLine("Please Enter Rebate Details:");
+            Console.Write("Initial Amount :");
+            details.Amount = Decimal.Parse(Console.ReadLine());
+            Console.Write("Percentage: ");
+            details.Percentage = Decimal.Parse(Console.ReadLine());
+            return details;
+
+        }
+        catch {
+            Console.Write("Error : Invalid Rebate Input");
             Environment.Exit(0);
             return null;
         }
